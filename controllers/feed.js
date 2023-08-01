@@ -6,6 +6,8 @@ exports.getPosts = (req, res, next) => {
 
 exports.postPost = (req, res, next) => {
   res.status(200).json({
-    elo: "Elo",
+    wiadomość: "cześć",
+    mail: req.body.email,
+    pass: req.body.pass,
   });
 };

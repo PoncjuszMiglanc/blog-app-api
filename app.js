@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const feedRoutes = require("./routes/feed");
+const userRoutes = require("./routes/user");
 const app = express();
 
 app.use(bodyParser.json());
@@ -17,6 +18,7 @@ app.use((req, res, next) => {
 });
 
 app.use(feedRoutes);
+app.use(userRoutes);
 
 mongoose
   .connect(
