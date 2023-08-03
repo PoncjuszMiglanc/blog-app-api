@@ -5,7 +5,22 @@ const feedRoutes = require("./routes/feed");
 const userRoutes = require("./routes/user");
 const app = express();
 
+const multer = require("multer");
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "images");
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now();
+    cb(null, uniqueSuffix + "-" + file.originalname);
+  },
+});
+// const upload = multer({ storage: storage });
+
 app.use(bodyParser.json());
+
+app.use(multer({ storage: storage }).single("image"));
+app.use("/images", express.static("images"));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
