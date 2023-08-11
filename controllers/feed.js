@@ -1,5 +1,5 @@
 const Post = require("../models/post");
-
+//chya nie powinno się wrzucac obrazków do githuba
 exports.getPosts = (req, res, next) => {
   Post.find()
     .then((result) => {
@@ -12,6 +12,18 @@ exports.getPosts = (req, res, next) => {
       console.log(err);
     });
 };
+
+exports.getPost = (req, res, next) => {
+  const id = req.params.id;
+  Post.findById(id)
+    .then((result) => {
+      res.status(200).json({ message: "mamy posta", post: result });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
 // /post
 exports.postPost = (req, res, next) => {
   const category = req.body.category;
