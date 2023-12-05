@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // @desc    Register user, chcę potem to przepisać na async/await i z metodą create()
-// @route   /register
+// @route   POST /register
 // @access  Public
 exports.register = (req, res, next) => {
   const { userName, email, password } = req.body;
@@ -30,7 +30,7 @@ exports.register = (req, res, next) => {
 };
 
 // @desc    Login user
-// @route   /login
+// @route   POST /login
 // @access  Public
 exports.login = (req, res, next) => {
   const { email, pass } = req.body;
@@ -48,10 +48,12 @@ exports.login = (req, res, next) => {
         throw new Error("Złe hasło");
       }
       const token = jwt.sign({ id: loadedUser._id }, "dfgfgdfhfghfghfgh", {
-        expiresIn: "1h",
+        expiresIn: "2h",
       });
       res
-        .cookie("jwt", token)
+        .cookie("jwt", token, {
+          maxAge: 3 * 60 * 60 * 1000,
+        })
         .status(200)
         .json({ wiadomość: "zalogowano elegancko", token: token });
     })
@@ -60,6 +62,13 @@ exports.login = (req, res, next) => {
     });
 };
 
+// @desc    Login user
+// @route   POST /logout
+// @access  Public
 exports.logout = (req, res, next) => {
-  res.status(200).json({ message: "elo" });
+  res.cookie("jwt", "", {
+    httpOnly: true,
+    expires: new Date(0),
+  });
+  res.status(200).json({ message: "Wylogowano" });
 };
