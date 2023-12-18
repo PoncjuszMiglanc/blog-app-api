@@ -38,6 +38,9 @@ exports.login = (req, res, next) => {
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
+        res
+          .status(404)
+          .json({ wiadomość: "Nie ma takiego użytkownika w bazie danych" });
         throw new Error("Nie znaleziono takiego użytkownika");
       }
       loadedUser = user;
