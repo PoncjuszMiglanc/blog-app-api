@@ -7,5 +7,6 @@ const router = express.Router();
 router.get("/posts", feedController.getPosts);
 router.get("/posts/:id", feedController.getPost);
 router.post("/post", protect, feedController.postPost);
+router.delete("/deletepost", feedController.deletePost);
 
 module.exports = router;

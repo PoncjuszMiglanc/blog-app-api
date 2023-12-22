@@ -1,5 +1,5 @@
 const Post = require("../models/post");
-//chya nie powinno się wrzucac obrazków do githuba
+
 exports.getPosts = (req, res, next) => {
   Post.find()
     .then((result) => {
@@ -33,16 +33,7 @@ exports.postPost = (req, res, next) => {
   const image = req.file.filename;
   const content = req.body.content;
 
-  // res.status(201).json({
-  //   wiadomość: "Utworzono posta",
-  //   // post: result,
-  //   kategoria: kategoria,
-  //   tytuł: tytuł,
-  //   lead: lead,
-  //   autor: autor,
-  //   image: image,
-  //   treść: treść,
-  // });
+  // const { category, title, lead, author, image, content } = req.body;
 
   const post = new Post({
     category: category,
@@ -64,4 +55,26 @@ exports.postPost = (req, res, next) => {
     .catch((error) => {
       console.log(error);
     });
+};
+
+exports.deletePost = (req, res, next) => {
+  const postId = req.body.id;
+
+  if (!postId) {
+    return res.status(400).json({ error: "brak id posta w requeście" });
+  }
+
+  Post.findByIdAndDelete(postId)
+    .then((deletedPost) => {
+      if (!deletedPost) {
+        return res.status(404).json({ error: "post o takim id nie istnieje" });
+      }
+      res.json({ message: "udało się usunąć posta" });
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json({ błąd: "wystąpił błąd podczas usuwania posta" });
+    });
+
+  //jeszcze zeby img usuwal stad
 };
