@@ -4,7 +4,9 @@ const mongoose = require("mongoose");
 const feedRoutes = require("./routes/feed");
 const userRoutes = require("./routes/user");
 const cookieParser = require("cookie-parser");
+
 const app = express();
+
 app.use(cookieParser());
 
 const multer = require("multer");
@@ -17,7 +19,6 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix + "-" + file.originalname);
   },
 });
-// const upload = multer({ storage: storage });
 
 app.use(bodyParser.json());
 
@@ -43,11 +44,10 @@ mongoose
   .connect(
     "mongodb+srv://poncjuszmiglanc:M8JcknlXJxZwbKT7@blogapp.c9vde5p.mongodb.net/?retryWrites=true&w=majority"
   )
-  .then((result) => {
+  .then((_result) => {
     app.listen(8080);
-    console.log(result, "Połączyliśmy się ");
+    console.log("Połączyliśmy się");
   })
   .catch((err) => {
     console.log(err);
   });
-// app.listen(8080);

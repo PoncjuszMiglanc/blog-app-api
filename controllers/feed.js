@@ -78,3 +78,40 @@ exports.deletePost = (req, res, next) => {
 
   //jeszcze zeby img usuwal stad
 };
+
+exports.updatePost = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const { category, title, lead, author, content } = req.body;
+
+    let updatedFields = {
+      category,
+      title,
+      lead,
+      author,
+      content,
+    };
+
+    if (req.file) {
+      updatedFields.image = req.file.filename;
+    }
+
+    const updatedPost = await Post.findByIdAndUpdate(id, updatedFields, {
+      new: true,
+    });
+
+    if (!updatedPost) {
+      return res
+        .status(404)
+        .json({ error: "Post o podanym id nie istnieje w bazie danych" });
+    }
+
+    res.status(200).json({
+      wiadomość: "Post został pomyślnie zaktualizowany",
+      post: updatedPost,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ wiadomość: "Wystąpił błąd podczas aktualizacji" });
+  }
+};
