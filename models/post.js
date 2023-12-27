@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+//chodzi o to, żeby w poscie była jeszcze jedna kolumna z id autora , żeby było jasne,
+// jakie posty autor może edytowac i usuwać,i jakie wyświetlają się w jego profilu
 const postSchema = new mongoose.Schema(
   {
     //jeszcze data
