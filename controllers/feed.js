@@ -59,26 +59,40 @@ exports.postPost = (req, res, next) => {
     });
 };
 
-exports.deletePost = (req, res, next) => {
+exports.deletePost = async (req, res, next) => {
   const postId = req.body.id;
 
   if (!postId) {
     return res.status(400).json({ error: "brak id posta w requeście" });
   }
 
-  Post.findByIdAndDelete(postId)
-    .then((deletedPost) => {
-      if (!deletedPost) {
-        return res.status(404).json({ error: "post o takim id nie istnieje" });
-      }
-      res.json({ message: "udało się usunąć posta" });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({ błąd: "wystąpił błąd podczas usuwania posta" });
-    });
+  try {
+    const oldPost = await Post.findById(postId);
 
-  //jeszcze zeby img usuwal stad
+    if (!oldPost) {
+      res.status(404).json({ message: "nie udało się odnaleźć posta" });
+    }
+
+    const deletedPost = await Post.findByIdAndDelete(postId);
+
+    if (!deletedPost) {
+      res.status(404).json({ message: "nie udało się usunąć posta" });
+    }
+
+    const oldImagePath = path.join("images", oldPost.image);
+
+    if (fs.existsSync(oldImagePath)) {
+      fs.unlinkSync(oldImagePath);
+      console.log("udało się usunąc obrazek");
+    } else {
+      console.log("nie udało się odnaleźć obrazka");
+    }
+
+    res.json({ wiadomośc: "posta usunięto poprawnie" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "nie udało się usunąc posta" });
+  }
 };
 
 exports.updatePost = async (req, res, next) => {
