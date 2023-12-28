@@ -1,4 +1,6 @@
 const Post = require("../models/post");
+const fs = require("fs");
+const path = require("path");
 
 exports.getPosts = (req, res, next) => {
   Post.find()
@@ -93,6 +95,20 @@ exports.updatePost = async (req, res, next) => {
     };
 
     if (req.file) {
+      const oldPost = await Post.findById(id);
+      const oldImageName = oldPost.image;
+
+      if (oldImageName) {
+        const oldImagePath = path.join("images", oldImageName);
+
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+          console.log(`usunięto stary obrazek ${oldImageName}`);
+        } else {
+          console.log(`nie znaleziono obrazka ${oldImageName}`);
+        }
+      }
+
       updatedFields.image = req.file.filename;
     }
 
