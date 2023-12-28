@@ -2,6 +2,8 @@ const Post = require("../models/post");
 const fs = require("fs");
 const path = require("path");
 
+//  GET /posts
+//  getting all posts
 exports.getPosts = (req, res, next) => {
   Post.find()
     .then((result) => {
@@ -15,6 +17,8 @@ exports.getPosts = (req, res, next) => {
     });
 };
 
+//  GET /posts/:id
+//  getting single post
 exports.getPost = (req, res, next) => {
   const id = req.params.id;
   Post.findById(id)
@@ -26,7 +30,8 @@ exports.getPost = (req, res, next) => {
     });
 };
 
-// /post
+//  POST /post
+//  creating single post
 exports.postPost = (req, res, next) => {
   const category = req.body.category;
   const title = req.body.title;
@@ -59,6 +64,8 @@ exports.postPost = (req, res, next) => {
     });
 };
 
+//  DELETE /deletepost
+//  deleting single post
 exports.deletePost = async (req, res, next) => {
   const postId = req.body.id;
 
@@ -95,6 +102,8 @@ exports.deletePost = async (req, res, next) => {
   }
 };
 
+//  PUT /post/update/:id
+//  updating single post
 exports.updatePost = async (req, res, next) => {
   try {
     const id = req.params.id;

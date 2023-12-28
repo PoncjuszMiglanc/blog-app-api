@@ -5,64 +5,116 @@ const jwt = require("jsonwebtoken");
 // @desc    Register user, chcę potem to przepisać na async/await i z metodą create()
 // @route   POST /register
 // @access  Public
-exports.register = (req, res, next) => {
-  const { userName, email, password } = req.body;
-  bcrypt
-    .hash(password, 12)
-    .then((hashedPassword) => {
-      const user = new User({
-        username: userName,
-        email: email,
-        password: hashedPassword,
-      });
-      return user.save();
-    })
-    .then((result) => {
-      console.log(result);
-      res.status(201).json({
-        wiadomość: "Zarejestrowano użytkownika",
-        user: result,
-      });
-    })
-    .catch((err) => {
-      console.log(err);
+exports.register = async (req, res, next) => {
+  try {
+    const { userName, email, password } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const user = new User({
+      username: userName,
+      email: email,
+      password: hashedPassword,
     });
+
+    const result = await user.save();
+
+    res.status(201).json({
+      wiadomość: "zarejestrowano użytkownika",
+      user: result,
+    });
+  } catch (error) {
+    console.lor(err);
+    res.status(500).json({ wiadomość: "Wystąpił błąd podczas rejestracji" });
+  }
+
+  //Poncho sampedro@mail.com poncho666
+  // const { userName, email, password } = req.body;
+  // bcrypt
+  //   .hash(password, 12)
+  //   .then((hashedPassword) => {
+  //     const user = new User({
+  //       username: userName,
+  //       email: email,
+  //       password: hashedPassword,
+  //     });
+  //     return user.save();
+  //   })
+  //   .then((result) => {
+  //     console.log(result);
+  //     res.status(201).json({
+  //       wiadomość: "Zarejestrowano użytkownika",
+  //       user: result,
+  //     });
+  //   })
+  //   .catch((err) => {
+  //     console.log(err);
+  //   });
 };
 
 // @desc    Login user
 // @route   POST /login
 // @access  Public
-exports.login = (req, res, next) => {
-  const { email, pass } = req.body;
-  let loadedUser;
-  User.findOne({ email: email })
-    .then((user) => {
-      if (!user) {
-        res
-          .status(404)
-          .json({ wiadomość: "Nie ma takiego użytkownika w bazie danych" });
-        throw new Error("Nie znaleziono takiego użytkownika");
-      }
-      loadedUser = user;
-      return bcrypt.compare(pass, user.password);
-    })
-    .then((passwordIsOk) => {
-      if (!passwordIsOk) {
-        throw new Error("Złe hasło");
-      }
-      const token = jwt.sign({ id: loadedUser._id }, "dfgfgdfhfghfghfgh", {
-        expiresIn: "2h",
-      });
-      res
-        .cookie("jwt", token, {
-          maxAge: 3 * 60 * 60 * 1000,
-        })
-        .status(200)
-        .json({ wiadomość: "zalogowano elegancko", token: token });
-    })
-    .catch((err) => {
-      console.log(err);
+exports.login = async (req, res, next) => {
+  try {
+    const { email, pass } = req.body;
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ wiadomość: "nie ma takiego użytkownika w bazie danych" });
+    }
+
+    const passwordIsOk = await bcrypt.compare(pass, user.password);
+
+    if (!passwordIsOk) {
+      return res.status(401).json({ wiadomość: "Podane hasło jest błędne" });
+    }
+
+    const token = jwt.sign({ id: user._id }, "dfgfgdfhfghfghfgh", {
+      expiresIn: "2h",
     });
+
+    res
+      .cookie("jwt", token, { maxAge: 3 * 60 * 60 * 1000 })
+      .status(200)
+      .json({ wiadomość: "Zalogowano poprawnie", token: token });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ wiadomość: "błąd podczas logowania" });
+  }
+
+  // const { email, pass } = req.body;
+  // let loadedUser;
+  // User.findOne({ email: email })
+  //   .then((user) => {
+  //     if (!user) {
+  //       res
+  //         .status(404)
+  //         .json({ wiadomość: "Nie ma takiego użytkownika w bazie danych" });
+  //       throw new Error("Nie znaleziono takiego użytkownika");
+  //     }
+  //     loadedUser = user;
+  //     return bcrypt.compare(pass, user.password);
+  //   })
+  //   .then((passwordIsOk) => {
+  //     if (!passwordIsOk) {
+  //       throw new Error("Złe hasło");
+  //     }
+  //     const token = jwt.sign({ id: loadedUser._id }, "dfgfgdfhfghfghfgh", {
+  //       expiresIn: "2h",
+  //     });
+  //     res
+  //       .cookie("jwt", token, {
+  //         maxAge: 3 * 60 * 60 * 1000,
+  //       })
+  //       .status(200)
+  //       .json({ wiadomość: "zalogowano elegancko", token: token });
+  //   })
+  //   .catch((err) => {
+  //     console.log(err);
+  //   });
 };
 
 // @desc    Login user
