@@ -9,6 +9,15 @@ exports.register = async (req, res, next) => {
   try {
     const { userName, email, password } = req.body;
 
+    const existingUser = await User.find({ $or: [{ userName }, { email }] });
+
+    if (existingUser.length > 0) {
+      return res.status(409).json({
+        message: "użytkownik o podanym loginie lub mailu już istnieje",
+        user: existingUser,
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = new User({
@@ -79,7 +88,7 @@ exports.login = async (req, res, next) => {
     res
       .cookie("jwt", token, { maxAge: 3 * 60 * 60 * 1000 })
       .status(200)
-      .json({ wiadomość: "Zalogowano poprawnie", token: token });
+      .json({ wiadomość: "Zalogowano poprawnie", userId: user._id });
   } catch (error) {
     console.log(error);
     res.status(500).json({ wiadomość: "błąd podczas logowania" });
@@ -126,4 +135,23 @@ exports.logout = (req, res, next) => {
     expires: new Date(0),
   });
   res.status(200).json({ message: "Wylogowano" });
+};
+
+exports.getUserData = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const userData = await User.findById(id);
+    //potem jeszcze z drugiego modelu weźmiemy posty.
+
+    if (!userData) {
+      return res
+        .status(404)
+        .json({ message: "nie znaleziono takiego użytkownika" });
+    }
+
+    res.status(200).json({ message: "oto dane użytkownika :", userData });
+  } catch (err) {
+    res.status(500).json({ message: "wystąpił błąd" });
+    console.log(err);
+  }
 };
