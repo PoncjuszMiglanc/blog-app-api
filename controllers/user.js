@@ -1,6 +1,8 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const path = require("path");
+const fs = require("fs");
 
 // @desc    Register user, chcę potem to przepisać na async/await i z metodą create()
 // @route   POST /register
@@ -36,29 +38,6 @@ exports.register = async (req, res, next) => {
     console.lor(err);
     res.status(500).json({ wiadomość: "Wystąpił błąd podczas rejestracji" });
   }
-
-  //Poncho sampedro@mail.com poncho666
-  // const { userName, email, password } = req.body;
-  // bcrypt
-  //   .hash(password, 12)
-  //   .then((hashedPassword) => {
-  //     const user = new User({
-  //       username: userName,
-  //       email: email,
-  //       password: hashedPassword,
-  //     });
-  //     return user.save();
-  //   })
-  //   .then((result) => {
-  //     console.log(result);
-  //     res.status(201).json({
-  //       wiadomość: "Zarejestrowano użytkownika",
-  //       user: result,
-  //     });
-  //   })
-  //   .catch((err) => {
-  //     console.log(err);
-  //   });
 };
 
 // @desc    Login user
@@ -93,37 +72,6 @@ exports.login = async (req, res, next) => {
     console.log(error);
     res.status(500).json({ wiadomość: "błąd podczas logowania" });
   }
-
-  // const { email, pass } = req.body;
-  // let loadedUser;
-  // User.findOne({ email: email })
-  //   .then((user) => {
-  //     if (!user) {
-  //       res
-  //         .status(404)
-  //         .json({ wiadomość: "Nie ma takiego użytkownika w bazie danych" });
-  //       throw new Error("Nie znaleziono takiego użytkownika");
-  //     }
-  //     loadedUser = user;
-  //     return bcrypt.compare(pass, user.password);
-  //   })
-  //   .then((passwordIsOk) => {
-  //     if (!passwordIsOk) {
-  //       throw new Error("Złe hasło");
-  //     }
-  //     const token = jwt.sign({ id: loadedUser._id }, "dfgfgdfhfghfghfgh", {
-  //       expiresIn: "2h",
-  //     });
-  //     res
-  //       .cookie("jwt", token, {
-  //         maxAge: 3 * 60 * 60 * 1000,
-  //       })
-  //       .status(200)
-  //       .json({ wiadomość: "zalogowano elegancko", token: token });
-  //   })
-  //   .catch((err) => {
-  //     console.log(err);
-  //   });
 };
 
 // @desc    Login user
@@ -153,5 +101,63 @@ exports.getUserData = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "wystąpił błąd" });
     console.log(err);
+  }
+};
+
+exports.updateUserData = async (req, res) => {
+  const { id } = req.params;
+  const { username, email, password, about } = req.body;
+
+  try {
+    let updatedFields = {
+      username,
+      email,
+      about,
+    };
+
+    if (password) {
+      const oldUser = await User.findById(id);
+      checkPassword = await bcrypt.compare(password, oldUser.password);
+
+      if (!checkPassword) {
+        const hashedPass = await bcrypt.hash(password, 12);
+        updatedFields.password = hashedPass;
+      }
+    }
+
+    if (req.file) {
+      const oldUser = await User.findById(id);
+
+      if (oldUser.avatar) {
+        const oldUserImagePath = path.join("images", oldUser.avatar);
+
+        if (fs.existsSync(oldUserImagePath)) {
+          fs.unlinkSync(oldUserImagePath);
+        } else {
+          console.log("nie ma takiego obrazka", oldUser.avatar);
+        }
+      }
+
+      updatedFields.avatar = req.file.filename;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(id, updatedFields, {
+      new: true,
+    });
+
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ message: "nie znaleziono użytkownika w bazie danych " });
+    }
+
+    res.status(200).json({
+      message: "udało się zaktualizować dane użytkownika",
+      dane: updatedUser,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "błąd podczas aktualizacji danych", error: err });
   }
 };
