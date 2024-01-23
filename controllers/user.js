@@ -154,6 +154,7 @@ exports.updateUserData = async (req, res) => {
     res.status(200).json({
       message: "udało się zaktualizować dane użytkownika",
       dane: updatedUser,
+      imageInfo: req.file,
     });
   } catch (err) {
     res
