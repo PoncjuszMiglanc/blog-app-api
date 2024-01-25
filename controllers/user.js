@@ -163,21 +163,48 @@ exports.updateUserData = async (req, res) => {
 	}
 };
 
-exports.deleteUserData = async (req, res) => {
+exports.validateUserData = async (req, res) => {
 	const { login, password } = req.body;
 	const { id } = req.params;
 
 	try {
-		const oldUser = await User.find({ login, password });
-		//nie wiem czy find dobrze napisane
-		matchedPassword = await bcrypt.compare(password, oldUser.password);
-		if (matchedPassword) {
-			const deletedUser = await User.findByIdAndDelete(id);
+		const user = await User.findById(id);
+
+		if (!user) {
 			return res
-				.status(200)
-				.json({ message: 'usunięto użytkownika', user: deletedUser });
+				.status(404)
+				.json({ message: 'nie znaleziono takiego użytkownika w bazie' });
+		}
+
+		const isValidPassword = await bcrypt.compare(password, user.password);
+
+		if (isValidPassword && login === user.username) {
+			res.status(200).json({
+				message: 'użytkownik jest prawidłowy',
+				authorized: true,
+			});
 		} else {
-			return res.status(401).json({ message: 'podano błędne hasło' });
+			return res.status(401).json({ message: 'brak autoryzacji' });
+		}
+	} catch (err) {
+		res
+			.status(500)
+			.json({ message: 'błąd podczas autoryzacji użytkownika', error: err });
+	}
+};
+
+exports.deleteUserData = async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		//jeszcze usuwanie obrazka
+		const deletedUser = await User.findByIdAndDelete(id);
+		if (!deletedUser) {
+			return res
+				.status(404)
+				.json({ message: 'nie znaleziono podanego użytkownika' });
+		} else {
+			res.status(200).json({ message: 'usunięto użytkownika', deletedUser });
 		}
 	} catch (err) {
 		res.status(500).json({
