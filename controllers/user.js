@@ -197,7 +197,6 @@ exports.deleteUserData = async (req, res) => {
 	const { id } = req.params;
 
 	try {
-		//jeszcze usuwanie obrazka
 		const deletedUser = await User.findByIdAndDelete(id);
 		if (!deletedUser) {
 			return res
@@ -205,6 +204,17 @@ exports.deleteUserData = async (req, res) => {
 				.json({ message: 'nie znaleziono podanego użytkownika' });
 		} else {
 			res.status(200).json({ message: 'usunięto użytkownika', deletedUser });
+		}
+
+		if (deletedUser.avatar) {
+			const avatarPath = path.join('images', deletedUser.avatar);
+
+			if (fs.existsSync(avatarPath)) {
+				fs.unlinkSync(avatarPath);
+				console.log('usunięto avatar');
+			} else {
+				console.log('nie było avatara do usunięcia');
+			}
 		}
 	} catch (err) {
 		res.status(500).json({
