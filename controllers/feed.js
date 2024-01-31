@@ -34,8 +34,10 @@ exports.getPost = (req, res, next) => {
 //  creating single post
 exports.postPost = (req, res, next) => {
 	const author = req.user.username;
-	const { category, title, lead, content } = req.body;
+	const { category, title, lead, content, tags } = req.body;
 	const image = req.file.filename;
+
+	const separatedTags = tags.split(',').map((tag) => tag.trim());
 
 	const post = new Post({
 		category,
@@ -44,6 +46,7 @@ exports.postPost = (req, res, next) => {
 		author,
 		image,
 		content,
+		tags: separatedTags,
 	});
 	post
 		.save()
